@@ -29,6 +29,7 @@ metadata
         capability "GarageDoorControl"
         capability "Initialize"
         capability "SignalStrength"
+	capability "ContactSensor"
         
         attribute "commStatus", "string"
     }
@@ -86,6 +87,7 @@ def refreshFromMaster(doorNum, doorState)
     }
     
     def stateVal = ""
+    det contactVal = ""
     switch(doorState.doorStatus.toString())
     {
         case "0":
@@ -97,22 +99,27 @@ def refreshFromMaster(doorNum, doorState)
             break
         case "1":
             stateVal = "open"
+	    contactVal = "open"
             break
         case "2":
             stateVal = "opening"
+	    contactVal = "open" //treat opening as at least partially open
             unschedule()
             runIn(10, requestRefresh)
             break
         case "4":
             stateVal = "closed"
+	    contactVal = "closed"
             break
         case "5":
             stateVal = "closing"
+	    contactVal = "open" //treat closing as still open
             unschedule()
             runIn(10, requestRefresh)
             break
     }    
     sendEvent(name: "door", value: stateVal)
+    sendEvent(name: "contact", value: contactVal)
     
     sendEvent(name: "battery", value: doorState.doorBattery)
     sendEvent(name: "rssi", value: doorState.doorBLE)
