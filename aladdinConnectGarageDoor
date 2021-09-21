@@ -16,6 +16,7 @@ limitations under the License.
 
 Change history:
 
+1.1.2 - joshualyon - Added Contact Sensor compatibility shim.
 1.1.1 - tomw - Added Actuator for compatibility.
 1.1.0 - tomw - Added support for multiple openers.
 1.0.0 - tomw - Initial release.
@@ -29,6 +30,7 @@ metadata
         capability "Actuator"
         capability "Battery"
         capability "GarageDoorControl"
+	capability "ContactSensor"
         capability "Initialize"
         capability "SignalStrength"
         
@@ -68,7 +70,8 @@ def updated()
 def initialize()
 {
     sendEvent(name: "commStatus", value: "unknown")
-    sendEvent(name: "door", value: "unknown")    
+    sendEvent(name: "door", value: "unknown")
+    sendEvent(name: "contact", value: "open")
     sendEvent(name: "battery", value: "unknown")
     sendEvent(name: "rssi", value: "unknown")
 }
@@ -88,6 +91,7 @@ def refreshFromMaster(doorNum, doorState)
     }
     
     def stateVal = ""
+    def contactVal = "open" //default to open unless we know it's fully closed
     switch(doorState.doorStatus.toString())
     {
         case "0":
@@ -107,6 +111,7 @@ def refreshFromMaster(doorNum, doorState)
             break
         case "4":
             stateVal = "closed"
+	    contactVal = "closed"
             break
         case "5":
             stateVal = "closing"
@@ -115,6 +120,7 @@ def refreshFromMaster(doorNum, doorState)
             break
     }    
     sendEvent(name: "door", value: stateVal)
+    sendEvent(name: "contact", value: contactVal)
     
     sendEvent(name: "battery", value: doorState.doorBattery)
     sendEvent(name: "rssi", value: doorState.doorBLE)
